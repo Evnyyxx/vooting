@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLASS MEETING — Aspirasi &amp; Voting Lomba</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase JS SDK v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Google Fonts: Oswald & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Oswald"', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #090d16;
+      color: #f8fafc;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-image:
+        radial-gradient(circle at 12% 0%, rgba(14, 165, 233, 0.14), transparent 40%),
+        radial-gradient(circle at 88% 8%, rgba(16, 185, 129, 0.11), transparent 36%),
+        radial-gradient(circle at 50% 100%, rgba(99, 102, 241, 0.1), transparent 45%);
+    }
+    .font-display {
+      font-family: 'Oswald', sans-serif;
+    }
+    .bar-gloss {
+      position: relative;
+      overflow: hidden;
+    }
+    .bar-gloss::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0) 55%);
+      pointer-events: none;
+    }
+    .chart-grid-bg {
+      background-image: linear-gradient(to right, rgba(148, 163, 184, 0.1) 1px, transparent 1px);
+      background-size: 25% 100%;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-cyan-400 selection:text-slate-950">
+
+  <!-- TOP NAVBAR -->
+  <header class="sticky top-0 z-40 bg-[#090d16]/90 backdrop-blur-md border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-slate-950 shadow-lg shadow-cyan-500/20">
+          <i data-lucide="trophy" class="w-5 h-5 stroke-[2.5]"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-display text-xl font-bold tracking-wide text-white uppercase">CLASS MEETING</span>
+            <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 uppercase tracking-wider">
+              Live Analytics
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Portal Aspirasi &amp; Voting Lomba Antar Kelas</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-2.5">
+        <!-- CLOUD SYNC STATUS BADGE -->
+        <div id="cloudStatusBadge" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700" title="Status Koneksi Database Cloud">
+          <i data-lucide="cloud" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span id="cloudStatusText" class="hidden md:inline">Menghubungkan...</span>
+        </div>
+
+        <!-- PHASE STATUS BADGE -->
+        <div id="phaseBadgeNav" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="phaseLabelNav">Usulan &amp; Voting Dibuka</span>
+        </div>
+
+        <!-- ADMIN PANEL BUTTON -->
+        <button onclick="openAdminModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 transition cursor-pointer">
+          <i data-lucide="shield-check" class="w-4 h-4 text-amber-400"></i>
+          <span class="hidden sm:inline">Panel Panitia</span>
+          <span id="navPendingBadge" class="hidden px-1.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+
+    <!-- HERO BANNER & KPI SUMMARY -->
+    <section class="relative overflow-hidden rounded-2xl bg-[#111827] border border-slate-800 p-6 sm:p-8 shadow-2xl">
+      <div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none"></div>
+      <div class="absolute -left-16 -bottom-16 w-72 h-72 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
+
+      <div class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div class="max-w-2xl space-y-2.5">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-xs font-semibold text-cyan-300">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>Suara Kamu Menentukan Cabang Lomba!</span>
+          </div>
+          <h1 class="font-display text-3xl sm:text-4xl font-bold text-white tracking-tight uppercase leading-tight">
+            Tentukan Lomba &amp; Hadiah <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-emerald-300 to-amber-300">Class Meeting</span> Terfavorit
+          </h1>
+          <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+            Ajukan ide cabang lomba, usulan hadiah, serta link video contoh permainannya, lalu dukung hingga <strong class="text-white">3 lomba pilihanmu</strong> langsung pada grafik peringkat real-time di bawah ini.
+          </p>
+        </div>
+
+        <!-- KPI CARDS -->
+        <div class="grid grid-cols-3 gap-3 sm:gap-4 shrink-0">
+          <div class="bg-[#090d16]/90 border border-slate-800 rounded-xl p-3.5 sm:p-4 text-center min-w-[95px] sm:min-w-[115px]">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Total Lomba</div>
+            <div id="statTotalLomba" class="font-display text-2xl sm:text-3xl font-bold text-cyan-300">0</div>
+          </div>
+          <div class="bg-[#090d16]/90 border border-slate-800 rounded-xl p-3.5 sm:p-4 text-center min-w-[95px] sm:min-w-[115px]">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Total Suara</div>
+            <div id="statTotalVotes" class="font-display text-2xl sm:text-3xl font-bold text-emerald-300">0</div>
+          </div>
+          <div class="bg-[#090d16]/90 border border-slate-800 rounded-xl p-3.5 sm:p-4 text-center min-w-[95px] sm:min-w-[115px]">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Kuota Pilih</div>
+            <div id="statMyQuota" class="font-display text-2xl sm:text-3xl font-bold text-amber-300">0/3</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UNIFIED 2-COLUMN WORKSPACE: FORM USULAN + COMBINED LEADERBOARD & VOTING CHART -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- LEFT COLUMN (4 COLS): FORM USULAN IDE LOMBA -->
+      <aside class="lg:col-span-4 bg-[#111827] border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl lg:sticky lg:top-20">
+        <div class="flex items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-lg bg-amber-400/15 border border-amber-400/30 flex items-center justify-center text-amber-300">
+              <i data-lucide="lightbulb" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="font-display text-lg font-bold text-white uppercase tracking-wide">Usulkan Ide Lomba</h2>
+              <p class="text-xs text-slate-400">Lengkapi detail, hadiah &amp; link video!</p>
+            </div>
+          </div>
+          <button type="button" onclick="toggleFormCollapse()" id="btnToggleForm" class="lg:hidden px-2.5 py-1 rounded-lg bg-slate-800 text-xs font-semibold text-slate-200 border border-slate-700 cursor-pointer">
+            Sembunyikan
+          </button>
+        </div>
+
+        <div id="formClosedNotice" class="hidden rounded-xl bg-amber-500/10 border border-amber-500/30 p-4 text-center space-y-1.5">
+          <i data-lucide="lock" class="w-6 h-6 text-amber-300 mx-auto"></i>
+          <p class="text-sm font-bold text-amber-200">Pengajuan Ide Baru Ditutup</p>
+          <p class="text-xs text-slate-300">Panitia telah menutup pengajuan ide baru. Silakan fokus melakukan voting pada daftar lomba di samping.</p>
+        </div>
+
+        <form id="ideaForm" onsubmit="handleIdeaSubmit(event)" class="space-y-4">
+          <div>
+            <label for="inputNamaLomba" class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-1.5">
+              Nama Lomba <span class="text-rose-400">*</span>
+            </label>
+            <input type="text" id="inputNamaLomba" required maxlength="60" placeholder="Contoh: Futsal Sarung Antar Kelas"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition" />
+          </div>
+
+          <div>
+            <label for="inputKategori" class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-1.5">
+              Kategori Lomba <span class="text-rose-400">*</span>
+            </label>
+            <select id="inputKategori" required
+              class="w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-sm focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition cursor-pointer">
+              <option value="Olahraga">Olahraga</option>
+              <option value="E-Sport">E-Sport</option>
+              <option value="Hiburan & Fun Game">Hiburan &amp; Fun Game</option>
+              <option value="Seni & Kreativitas">Seni &amp; Kreativitas</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="inputHadiah" class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-1.5">
+              Usulan Hadiah <span class="text-rose-400">*</span>
+            </label>
+            <input type="text" id="inputHadiah" required maxlength="70" placeholder="Contoh: Piala + Uang Kas Kelas + Sertifikat"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition" />
+          </div>
+
+          <div>
+            <label for="inputVideoUrl" class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-200 mb-1.5">
+              <span>Link Video Referensi <span class="text-slate-400 font-normal normal-case">(Opsional)</span></span>
+              <span class="text-[10px] font-semibold text-cyan-300 normal-case">YouTube / TikTok / Reels</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i data-lucide="video" class="w-4 h-4 text-rose-400"></i>
+              </div>
+              <input type="url" id="inputVideoUrl" maxlength="250" placeholder="https://youtube.com/watch?v=..."
+                class="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition" />
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Tempel link video contoh permainan agar teman-teman mudah paham konsep lombanya.</p>
+          </div>
+
+          <div>
+            <label for="inputDeskripsi" class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-1.5">
+              Aturan Singkat / Alasan <span class="text-rose-400">*</span>
+            </label>
+            <textarea id="inputDeskripsi" rows="3" required maxlength="160" placeholder="Contoh: Sistem gugur 1 tim 5 orang, durasi 2x10 menit."
+              class="w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition resize-none"></textarea>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="inputPengusul" class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-1.5">
+                Nama / Inisial
+              </label>
+              <input type="text" id="inputPengusul" maxlength="30" placeholder="Opsional"
+                class="w-full px-3 py-2 rounded-xl bg-[#090d16] border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-cyan-400 transition" />
+            </div>
+            <div>
+              <label for="inputKelas" class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-1.5">
+                Kelas
+              </label>
+              <input type="text" id="inputKelas" maxlength="20" placeholder="Misal: X TJKT 2"
+                class="w-full px-3 py-2 rounded-xl bg-[#090d16] border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-cyan-400 transition" />
+            </div>
+          </div>
+
+          <button type="submit" id="btnSubmitIdea" class="w-full py-3 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm uppercase tracking-wide shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition cursor-pointer">
+            <i data-lucide="send" class="w-4 h-4 stroke-[2.5]"></i>
+            <span>Kirim Usulan Lomba</span>
+          </button>
+        </form>
+      </aside>
+
+      <!-- RIGHT COLUMN (8 COLS): UNIFIED LEADERBOARD BAR CHART + VOTING -->
+      <section class="lg:col-span-8 bg-[#111827] border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-5">
+
+        <!-- CHART HEADER & CONTROLS -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <i data-lucide="bar-chart-3" class="w-5 h-5 text-cyan-400"></i>
+              <h2 class="font-display text-xl sm:text-2xl font-bold text-white uppercase tracking-wide">
+                Klasemen &amp; Voting Lomba Real-Time
+              </h2>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-300 mt-0.5">
+              Klik tombol <strong class="text-emerald-300">Vote</strong> langsung pada batang grafik untuk mendukung lomba favoritmu.
+            </p>
+          </div>
+
+          <!-- CHART ORIENTATION TOGGLE -->
+          <div class="inline-flex p-1 rounded-xl bg-[#090d16] border border-slate-800 self-start sm:self-auto">
+            <button type="button" id="btnModeHorizontal" onclick="setChartMode('horizontal')"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-400 text-slate-950 transition cursor-pointer">
+              <i data-lucide="align-left" class="w-3.5 h-3.5"></i>
+              <span>Batang Horizontal</span>
+            </button>
+            <button type="button" id="btnModeVertical" onclick="setChartMode('vertical')"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer">
+              <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
+              <span>Batang Vertikal</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- CATEGORY FILTER PILLS & VOTE LOCK BAR -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div id="categoryFilterBar" class="flex flex-wrap items-center gap-2">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- VOTE STATUS / LOCK ACTION -->
+          <div id="voteControlBar" class="flex items-center gap-2 self-start md:self-auto">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- SCALE LEGEND FOR HORIZONTAL MODE -->
+        <div id="horizontalScaleHeader" class="hidden sm:flex items-center justify-between px-4 py-1.5 rounded-lg bg-[#090d16] border border-slate-800/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          <span>Peringkat &amp; Detail Lomba</span>
+          <div class="flex items-center gap-8">
+            <span>0%</span>
+            <span>25%</span>
+            <span>50%</span>
+            <span>75%</span>
+            <span>100%</span>
+          </div>
+        </div>
+
+        <!-- UNIFIED CHART + VOTING CONTAINER -->
+        <div id="unifiedChartContainer" class="space-y-3.5">
+          <!-- Rendered by JS -->
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800/90 bg-[#090d16] py-5 px-4 mt-10">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
+      <p>Portal Aspirasi &amp; Voting Lomba <strong class="text-slate-200">Class Meeting</strong> • Real-Time Cloud Analytics</p>
+      <p>Maksimal <strong class="text-cyan-300">3 pilihan suara</strong> per siswa • Tersinkronisasi via Supabase Cloud</p>
+    </div>
+  </footer>
+
+  <!-- VIDEO PREVIEW MODAL -->
+  <div id="videoPreviewModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="bg-[#111827] border border-slate-700 rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden">
+      <div class="px-5 py-4 bg-[#090d16] border-b border-slate-800 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-lg bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+            <i data-lucide="play-circle" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0">
+            <h3 id="videoModalTitle" class="text-sm sm:text-base font-bold text-white truncate">Contoh Video Lomba</h3>
+            <p class="text-[11px] text-slate-400">Referensi konsep permainan dari pengusul</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeVideoModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer shrink-0">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="videoModalBody" class="p-4 sm:p-5 bg-[#090d16]">
+        <!-- Embed iframe or external link card injected by JS -->
+      </div>
+
+      <div class="px-5 py-3 bg-[#111827] border-t border-slate-800 flex items-center justify-between gap-3">
+        <a id="videoModalExternalLink" href="#" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-300 hover:text-cyan-200 transition">
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          <span>Buka di Tab Baru</span>
+        </a>
+        <button type="button" onclick="closeVideoModal()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition cursor-pointer">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN MODAL -->
+  <div id="adminModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-[#111827] border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 bg-[#090d16] border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="shield-check" class="w-5 h-5 text-amber-400"></i>
+          <h3 class="font-display text-lg font-bold text-white uppercase tracking-wide">Panel Kontrol Panitia</h3>
+        </div>
+        <button onclick="closeAdminModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- PIN LOGIN VIEW -->
+      <div id="adminPinView" class="p-8 text-center space-y-4 max-w-sm mx-auto">
+        <div class="w-12 h-12 rounded-2xl bg-amber-400/15 border border-amber-400/30 flex items-center justify-center text-amber-300 mx-auto">
+          <i data-lucide="key-round" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h4 class="text-base font-bold text-white">Masukkan PIN Panitia</h4>
+          <p class="text-xs text-slate-400 mt-1">Default PIN panitia: <code class="text-cyan-300 font-bold">2026</code></p>
+        </div>
+        <form onsubmit="verifyAdminPin(event)" class="space-y-3">
+          <input type="password" id="adminPinInput" maxlength="10" placeholder="••••" required
+            class="w-full text-center tracking-[0.4em] text-lg font-bold px-4 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white focus:outline-none focus:border-amber-400" />
+          <p id="adminPinError" class="text-xs font-semibold text-rose-400 hidden">PIN salah! Coba lagi.</p>
+          <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm uppercase tracking-wide transition cursor-pointer">
+            Buka Dashboard Panitia
+          </button>
+        </form>
+      </div>
+
+      <!-- ADMIN DASHBOARD CONTENT -->
+      <div id="adminDashboardView" class="hidden flex-1 overflow-y-auto p-6 space-y-6">
+        <!-- CLOUD SYNC STATUS & SEED TOOLS -->
+        <div class="bg-[#090d16] border border-slate-800 rounded-xl p-4 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
+                <span class="text-xs font-bold uppercase tracking-wider text-white">Koneksi Supabase Cloud</span>
+              </div>
+              <p id="adminCloudDetail" class="text-[11px] text-slate-400 mt-0.5 break-all">
+                Project: https://ninivwclnteokjeihevv.supabase.co
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" onclick="syncFromCloud(true)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-bold text-xs transition cursor-pointer">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                <span>Refresh Cloud</span>
+              </button>
+              <button type="button" onclick="uploadSeedDataToCloud()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 font-bold text-xs transition cursor-pointer">
+                <i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i>
+                <span>Upload Data Awal ke Cloud</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="cloudSetupWarning" class="hidden rounded-lg bg-amber-500/10 border border-amber-500/30 p-3 text-[11px] text-amber-200 space-y-1">
+            <p class="font-bold">Tabel Supabase belum terdeteksi (menggunakan fallback localStorage).</p>
+            <p class="text-slate-300">Pastikan tabel <code class="text-cyan-300">ideas</code> dan <code class="text-cyan-300">app_settings</code> beserta policy akses publik sudah dibuat di SQL Editor Supabase.</p>
+          </div>
+        </div>
+
+        <!-- PHASE & SETTINGS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-[#090d16] border border-slate-800 rounded-xl p-4 space-y-2.5">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300">Status Fase Acara</label>
+            <select id="adminPhaseSelect" onchange="changePhase(this.value)"
+              class="w-full px-3 py-2 rounded-lg bg-[#111827] border border-slate-700 text-white text-sm focus:outline-none focus:border-cyan-400 cursor-pointer">
+              <option value="open">1. Usulan &amp; Voting Dibuka</option>
+              <option value="voting_only">2. Hanya Voting (Usulan Ditutup)</option>
+              <option value="closed">3. Selesai (Hasil Akhir Dikunci)</option>
+            </select>
+          </div>
+
+          <div class="bg-[#090d16] border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-3">
+            <div>
+              <div class="text-xs font-bold uppercase tracking-wider text-slate-200">Auto-Approve Usulan Baru</div>
+              <p class="text-[11px] text-slate-400 mt-0.5">Langsung tampil di grafik tanpa menunggu persetujuan</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="adminAutoApprove" onchange="toggleAutoApprove(this.checked)" class="sr-only peer" />
+              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- ACTION TOOLS -->
+        <div class="flex flex-wrap items-center justify-between gap-2 bg-[#090d16] border border-slate-800 rounded-xl p-4">
+          <span class="text-xs font-semibold text-slate-300">Ekspor Laporan &amp; Reset Lokal:</span>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="exportCSV()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition cursor-pointer">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Unduh Rekap CSV</span>
+            </button>
+            <button onclick="resetDemoData()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-bold text-xs transition cursor-pointer">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              <span>Reset Cache Perangkat</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- MODERATION LIST -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">Daftar Semua Usulan Lomba (<span id="adminTotalCount">0</span>)</h4>
+          <div id="adminListContainer" class="space-y-2.5">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    // ==================== SUPABASE CLOUD CONFIGURATION ====================
+    const SUPABASE_URL = 'https://ninivwclnteokjeihevv.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_w_Z5Qk_6ffCwtmYOQJSnTw_HwbNvGho';
+
+    let supabaseClient = null;
+    let isCloudConnected = false;
+
+    try {
+      if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    } catch (err) {
+      console.error('Gagal menginisialisasi klien Supabase:', err);
+    }
+
+    // ==================== STATE & INITIAL DATA ====================
+    const STORAGE_KEY = 'classmeet_analytics_cloud_v3';
+    const ADMIN_PIN = '2026';
+    const MAX_VOTES = 3;
+
+    const BAD_WORDS = [
+      'anjing', 'babi', 'bangsat', 'kontol', 'memek', 'jembut', 'ngentot',
+      'tolol', 'goblok', 'idiot', 'asu', 'bajingan', 'kampret', 'tai', 'pantek', 'jancok'
+    ];
+
+    const DEFAULT_IDEAS = [
+      {
+        id: 'lomba-1',
+        nama: 'Turnamen Futsal Antar Kelas',
+        kategori: 'Olahraga',
+        hadiah: 'Piala Bergilir + Uang Pembinaan Rp 300.000',
+        videoUrl: '',
+        deskripsi: 'Sistem gugur 1 tim maksimal 8 pemain (5 inti, 3 cadangan), durasi 2x10 menit.',
+        pengusul: 'Raka Pratama',
+        kelas: 'XI TJKT 1',
+        votes: 42,
+        status: 'approved'
+      },
+      {
+        id: 'lomba-2',
+        nama: 'Mobile Legends: Bang Bang Championship',
+        kategori: 'E-Sport',
+        hadiah: 'Diamond Voucher + Sertifikat Juara 1-3',
+        videoUrl: '',
+        deskripsi: 'Mode Draft Pick 5v5 custom lobby, wajib menggunakan akun pribadi siswa aktif.',
+        pengusul: 'Dimas Saputra',
+        kelas: 'X TJKT 2',
+        votes: 38,
+        status: 'approved'
+      },
+      {
+        id: 'lomba-3',
+        nama: 'Estafet Sarung & Balap Karung Helm',
+        kategori: 'Hiburan & Fun Game',
+        hadiah: 'Paket Snack Jumbo Satu Kelas + Piagam',
+        videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        deskripsi: 'Tim campuran 3 putra & 3 putri per kelas, menguji kekompakan dan kelincahan.',
+        pengusul: 'Nadia Putri',
+        kelas: 'X AKL 1',
+        votes: 27,
+        status: 'approved'
+      },
+      {
+        id: 'lomba-4',
+        nama: 'Akustik & Musikalisasi Puisi',
+        kategori: 'Seni & Kreativitas',
+        hadiah: 'Trophy Seni + Voucher Kantin Rp 150.000',
+        videoUrl: '',
+        deskripsi: 'Membawakan 1 lagu wajib nasional/daerah dan 1 lagu bebas secara akustik.',
+        pengusul: 'Aulia Zahra',
+        kelas: 'XI MPLB 2',
+        votes: 19,
+        status: 'approved'
+      },
+      {
+        id: 'lomba-5',
+        nama: 'Tarik Tambang Campuran Putra-Putri',
+        kategori: 'Hiburan & Fun Game',
+        hadiah: 'Trophy + Paket Minuman Segar Satu Kelas',
+        videoUrl: '',
+        deskripsi: 'Setiap kelas mengirim 8 perwakilan (4 putra + 4 putri) sistem best of 3.',
+        pengusul: 'Fajar Nugroho',
+        kelas: 'X TKR 1',
+        votes: 11,
+        status: 'pending'
+      }
+    ];
+
+    let appState = {
+      ideas: [],
+      myVotes: [],
+      isVoteLocked: false,
+      phase: 'open', // 'open' | 'voting_only' | 'closed'
+      autoApprove: true,
+      selectedCategory: 'Semua',
+      chartMode: 'horizontal' // 'horizontal' | 'vertical'
+    };
+
+    let formCollapsed = false;
+
+    // ==================== STORAGE & SUPABASE SYNC ====================
+    function loadLocalState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          appState = { ...appState, ...parsed };
+        } catch (e) {
+          appState.ideas = JSON.parse(JSON.stringify(DEFAULT_IDEAS));
+        }
+      } else {
+        appState.ideas = JSON.parse(JSON.stringify(DEFAULT_IDEAS));
+      }
+      saveLocalState();
+    }
+
+    function saveLocalState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    }
+
+    function updateCloudBadge(status, detailMsg = '') {
+      const badge = document.getElementById('cloudStatusBadge');
+      const text = document.getElementById('cloudStatusText');
+      const warningBox = document.getElementById('cloudSetupWarning');
+      const adminDetail = document.getElementById('adminCloudDetail');
+
+      if (!badge || !text) return;
+
+      if (status === 'connected') {
+        isCloudConnected = true;
+        badge.className = 'flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/35';
+        badge.innerHTML = `<i data-lucide="cloud-check" class="w-3.5 h-3.5 text-cyan-300"></i><span id="cloudStatusText" class="hidden md:inline">Cloud Sync</span>`;
+        if (warningBox) warningBox.classList.add('hidden');
+        if (adminDetail) adminDetail.textContent = `Terhubung ke ${SUPABASE_URL} (Realtime Aktif)`;
+      } else if (status === 'syncing') {
+        badge.className = 'flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/35';
+        badge.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin text-amber-300"></i><span id="cloudStatusText" class="hidden md:inline">Menyinkronkan...</span>`;
+      } else {
+        isCloudConnected = false;
+        badge.className = 'flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700';
+        badge.innerHTML = `<i data-lucide="hard-drive" class="w-3.5 h-3.5 text-amber-400"></i><span id="cloudStatusText" class="hidden md:inline">Mode Lokal</span>`;
+        if (warningBox) warningBox.classList.remove('hidden');
+        if (adminDetail && detailMsg) {
+          adminDetail.textContent = `Fallback Lokal (${detailMsg})`;
+        }
+      }
+      lucide.createIcons();
+    }
+
+    function mapDbRowToIdea(row) {
+      return {
+        id: row.id,
+        nama: row.nama,
+        kategori: row.kategori,
+        hadiah: row.hadiah,
+        videoUrl: row.video_url || '',
+        deskripsi: row.deskripsi,
+        pengusul: row.pengusul || 'Siswa Anonim',
+        kelas: row.kelas || 'Umum',
+        votes: Number(row.votes) || 0,
+        status: row.status || 'approved'
+      };
+    }
+
+    function mapIdeaToDbRow(idea) {
+      return {
+        id: idea.id,
+        nama: idea.nama,
+        kategori: idea.kategori,
+        hadiah: idea.hadiah,
+        video_url: idea.videoUrl || '',
+        deskripsi: idea.deskripsi,
+        pengusul: idea.pengusul || 'Siswa Anonim',
+        kelas: idea.kelas || 'Umum',
+        votes: Number(idea.votes) || 0,
+        status: idea.status || 'approved'
+      };
+    }
+
+    async function syncFromCloud(showFeedback = false) {
+      if (!supabaseClient) {
+        updateCloudBadge('local', 'SDK Supabase tidak termuat');
+        return;
+      }
+
+      updateCloudBadge('syncing');
+
+      try {
+        // 1. Fetch ideas table
+        const { data: ideasData, error: ideasError } = await supabaseClient
+          .from('ideas')
+          .select('*')
+          .order('votes', { ascending: false });
+
+        if (ideasError) {
+          throw ideasError;
+        }
+
+        // 2. Fetch global settings (optional table, fallback gracefully if absent)
+        const { data: settingsData, error: settingsError } = await supabaseClient
+          .from('app_settings')
+          .select('*')
+          .eq('id', 'global')
+          .maybeSingle();
+
+        if (!settingsError && settingsData) {
+          appState.phase = settingsData.phase || appState.phase;
+          if (typeof settingsData.auto_approve === 'boolean') {
+            appState.autoApprove = settingsData.auto_approve;
+          }
+        }
+
+        // If cloud ideas table is empty on very first boot, seed it once with DEFAULT_IDEAS
+        if (Array.isArray(ideasData) && ideasData.length === 0) {
+          const seedRows = DEFAULT_IDEAS.map(mapIdeaToDbRow);
+          const { error: seedErr } = await supabaseClient.from('ideas').insert(seedRows);
+          if (!seedErr) {
+            appState.ideas = JSON.parse(JSON.stringify(DEFAULT_IDEAS));
+          }
+        } else if (Array.isArray(ideasData)) {
+          appState.ideas = ideasData.map(mapDbRowToIdea);
+        }
+
+        // Clean up local myVotes if any voted idea was deleted by admin in cloud
+        const validIds = new Set(appState.ideas.map(i => i.id));
+        appState.myVotes = appState.myVotes.filter(id => validIds.has(id));
+
+        saveLocalState();
+        updateCloudBadge('connected');
+        renderAll();
+
+        if (!document.getElementById('adminDashboardView').classList.contains('hidden')) {
+          renderAdminDashboard();
+        }
+
+        if (showFeedback) {
+          showToast('Data berhasil disinkronkan dari Supabase Cloud!', 'success');
+        }
+      } catch (err) {
+        console.warn('Supabase sync fallback ke localStorage:', err?.message || err);
+        updateCloudBadge('local', err?.message || 'Tabel belum siap');
+        renderAll();
+        if (showFeedback) {
+          showToast('Gagal terhubung ke tabel Supabase. Menggunakan penyimpanan lokal.', 'warning');
+        }
+      }
+    }
+
+    async function uploadSeedDataToCloud() {
+      if (!supabaseClient) {
+        showToast('Klien Supabase tidak tersedia.', 'error');
+        return;
+      }
+      try {
+        const rowsToUpsert = (appState.ideas.length > 0 ? appState.ideas : DEFAULT_IDEAS).map(mapIdeaToDbRow);
+        const { error } = await supabaseClient.from('ideas').upsert(rowsToUpsert, { onConflict: 'id' });
+        if (error) throw error;
+
+        await supabaseClient.from('app_settings').upsert({
+          id: 'global',
+          phase: appState.phase,
+          auto_approve: appState.autoApprove,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+
+        await syncFromCloud(false);
+        showToast('Seluruh data berhasil di-upload ke Supabase Cloud!', 'success');
+      } catch (err) {
+        showToast(`Gagal upload ke Cloud: ${err.message}`, 'error');
+      }
+    }
+
+    function setupRealtimeSubscription() {
+      if (!supabaseClient) return;
+      try {
+        supabaseClient
+          .channel('classmeet-cloud-realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas' }, () => {
+            syncFromCloud(false);
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, () => {
+            syncFromCloud(false);
+          })
+          .subscribe();
+      } catch (e) {
+        console.warn('Realtime subscription dilewati:', e);
+      }
+    }
+
+    // ==================== HELPERS ====================
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const styles = {
+        success: 'bg-emerald-500 text-slate-950 border-emerald-300',
+        warning: 'bg-amber-400 text-slate-950 border-amber-200',
+        error: 'bg-rose-500 text-white border-rose-300',
+        info: 'bg-cyan-400 text-slate-950 border-cyan-200'
+      };
+      toast.className = `pointer-events-auto px-4 py-3 rounded-xl border font-bold text-xs sm:text-sm shadow-2xl flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 ${styles[type] || styles.info}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    function containsProfanity(text) {
+      const lower = text.toLowerCase();
+      return BAD_WORDS.some(word => {
+        const regex = new RegExp(`\\b${word}\\b`, 'i');
+        return regex.test(lower) || lower.includes(word);
+      });
+    }
+
+    function escapeHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function isValidHttpUrl(string) {
+      if (!string) return true;
+      try {
+        const url = new URL(string);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function extractYouTubeEmbedUrl(url) {
+      if (!url) return null;
+      try {
+        const parsed = new URL(url);
+        let videoId = '';
+        if (parsed.hostname.includes('youtu.be')) {
+          videoId = parsed.pathname.slice(1).split('/')[0];
+        } else if (parsed.hostname.includes('youtube.com')) {
+          if (parsed.pathname.startsWith('/shorts/')) {
+            videoId = parsed.pathname.split('/shorts/')[1].split('/')[0];
+          } else if (parsed.pathname.startsWith('/embed/')) {
+            videoId = parsed.pathname.split('/embed/')[1].split('/')[0];
+          } else {
+            videoId = parsed.searchParams.get('v') || '';
+          }
+        }
+        return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function getVideoPlatformLabel(url) {
+      if (!url) return '';
+      const lower = url.toLowerCase();
+      if (lower.includes('youtube.com') || lower.includes('youtu.be')) return 'YouTube';
+      if (lower.includes('tiktok.com')) return 'TikTok';
+      if (lower.includes('instagram.com')) return 'Instagram Reels';
+      if (lower.includes('drive.google.com')) return 'Google Drive';
+      return 'Video Referensi';
+    }
+
+    function getCategoryBadgeClass(cat) {
+      switch (cat) {
+        case 'Olahraga':
+          return 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30';
+        case 'E-Sport':
+          return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
+        case 'Hiburan & Fun Game':
+          return 'bg-amber-500/15 text-amber-300 border-amber-500/30';
+        case 'Seni & Kreativitas':
+          return 'bg-purple-500/15 text-purple-300 border-purple-500/30';
+        default:
+          return 'bg-slate-700 text-slate-200 border-slate-600';
+      }
+    }
+
+    function getRankGradient(rankIndex) {
+      if (rankIndex === 0) return 'from-cyan-400 via-sky-400 to-blue-500';
+      if (rankIndex === 1) return 'from-emerald-400 via-teal-400 to-cyan-500';
+      if (rankIndex === 2) return 'from-amber-400 via-yellow-400 to-orange-500';
+      return 'from-indigo-400 via-blue-500 to-cyan-500';
+    }
+
+    function getRankBadgeStyle(rankIndex) {
+      if (rankIndex === 0) return 'bg-cyan-400 text-slate-950 border-cyan-200 shadow-cyan-400/30';
+      if (rankIndex === 1) return 'bg-emerald-400 text-slate-950 border-emerald-200 shadow-emerald-400/30';
+      if (rankIndex === 2) return 'bg-amber-400 text-slate-950 border-amber-200 shadow-amber-400/30';
+      return 'bg-slate-800 text-slate-200 border-slate-700';
+    }
+
+    // ==================== VIDEO PREVIEW MODAL ====================
+    function openVideoModal(ideaId) {
+      const idea = appState.ideas.find(i => i.id === ideaId);
+      if (!idea || !idea.videoUrl) return;
+
+      const modal = document.getElementById('videoPreviewModal');
+      const titleEl = document.getElementById('videoModalTitle');
+      const bodyEl = document.getElementById('videoModalBody');
+      const extLink = document.getElementById('videoModalExternalLink');
+
+      titleEl.textContent = `Contoh Video: ${idea.nama}`;
+      extLink.href = idea.videoUrl;
+
+      const embedUrl = extractYouTubeEmbedUrl(idea.videoUrl);
+      const platform = getVideoPlatformLabel(idea.videoUrl);
+
+      if (embedUrl) {
+        bodyEl.innerHTML = `
+          <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black border border-slate-800">
+            <iframe class="w-full h-full" src="${escapeHTML(embedUrl)}" title="${escapeHTML(idea.nama)}"
+              frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+            </iframe>
+          </div>
+        `;
+      } else {
+        bodyEl.innerHTML = `
+          <div class="rounded-xl bg-[#111827] border border-slate-800 p-6 text-center space-y-3">
+            <div class="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto">
+              <i data-lucide="external-link" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-1">
+              <p class="text-sm font-bold text-white">Tautan Video ${escapeHTML(platform)}</p>
+              <p class="text-xs text-slate-400 break-all max-w-md mx-auto">${escapeHTML(idea.videoUrl)}</p>
+            </div>
+            <a href="${escapeHTML(idea.videoUrl)}" target="_blank" rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs uppercase tracking-wide transition shadow-lg shadow-rose-500/20">
+              <i data-lucide="play" class="w-4 h-4"></i>
+              <span>Tonton Video di ${escapeHTML(platform)}</span>
+            </a>
+          </div>
+        `;
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closeVideoModal() {
+      const modal = document.getElementById('videoPreviewModal');
+      const bodyEl = document.getElementById('videoModalBody');
+      bodyEl.innerHTML = '';
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // ==================== FORM & SUBMISSION ====================
+    function toggleFormCollapse() {
+      formCollapsed = !formCollapsed;
+      const formEl = document.getElementById('ideaForm');
+      const btnEl = document.getElementById('btnToggleForm');
+      if (formCollapsed) {
+        formEl.classList.add('hidden');
+        btnEl.textContent = 'Tampilkan';
+      } else {
+        formEl.classList.remove('hidden');
+        btnEl.textContent = 'Sembunyikan';
+      }
+    }
+
+    async function handleIdeaSubmit(e) {
+      e.preventDefault();
+      if (appState.phase !== 'open') {
+        showToast('Pengajuan ide baru sedang ditutup oleh panitia.', 'warning');
+        return;
+      }
+
+      const nama = document.getElementById('inputNamaLomba').value.trim();
+      const kategori = document.getElementById('inputKategori').value;
+      const hadiah = document.getElementById('inputHadiah').value.trim();
+      const videoUrl = document.getElementById('inputVideoUrl').value.trim();
+      const deskripsi = document.getElementById('inputDeskripsi').value.trim();
+      const pengusul = document.getElementById('inputPengusul').value.trim() || 'Siswa Anonim';
+      const kelas = document.getElementById('inputKelas').value.trim() || 'Umum';
+
+      if (videoUrl && !isValidHttpUrl(videoUrl)) {
+        showToast('Link video tidak valid. Pastikan diawali http:// atau https://', 'error');
+        return;
+      }
+
+      if (containsProfanity(`${nama} ${hadiah} ${deskripsi} ${pengusul}`)) {
+        showToast('Usulan ditolak: terdeteksi kata yang tidak pantas.', 'error');
+        return;
+      }
+
+      const duplicate = appState.ideas.some(item => item.nama.toLowerCase() === nama.toLowerCase());
+      if (duplicate) {
+        showToast('Lomba dengan nama serupa sudah ada di daftar!', 'warning');
+        return;
+      }
+
+      const submitBtn = document.getElementById('btnSubmitIdea');
+      submitBtn.disabled = true;
+
+      const newIdea = {
+        id: 'lomba-' + Date.now(),
+        nama,
+        kategori,
+        hadiah,
+        videoUrl,
+        deskripsi,
+        pengusul,
+        kelas,
+        votes: 1,
+        status: appState.autoApprove ? 'approved' : 'pending'
+      };
+
+      // Optimistic local update
+      appState.ideas.unshift(newIdea);
+      saveLocalState();
+      e.target.reset();
+      renderAll();
+
+      // Sync to Supabase Cloud
+      if (supabaseClient && isCloudConnected) {
+        try {
+          const { error } = await supabaseClient.from('ideas').insert(mapIdeaToDbRow(newIdea));
+          if (error) throw error;
+          await syncFromCloud(false);
+        } catch (err) {
+          console.error('Gagal menyimpan usulan ke Supabase:', err);
+          updateCloudBadge('local', err.message);
+        }
+      }
+
+      submitBtn.disabled = false;
+
+      if (appState.autoApprove) {
+        showToast('Usulan lomba berhasil masuk ke grafik peringkat!', 'success');
+      } else {
+        showToast('Usulan terkirim & menunggu persetujuan panitia.', 'info');
+      }
+    }
+
+    // ==================== VOTING & CHART INTERACTION ====================
+    async function toggleVote(id) {
+      if (appState.phase === 'closed') {
+        showToast('Masa voting telah selesai dan hasil dikunci.', 'warning');
+        return;
+      }
+      if (appState.isVoteLocked) {
+        showToast('Pilihan suaramu sudah dikunci permanen!', 'warning');
+        return;
+      }
+
+      const idea = appState.ideas.find(i => i.id === id);
+      if (!idea || idea.status !== 'approved') return;
+
+      const idx = appState.myVotes.indexOf(id);
+      let delta = 0;
+
+      if (idx > -1) {
+        appState.myVotes.splice(idx, 1);
+        idea.votes = Math.max(0, idea.votes - 1);
+        delta = -1;
+        showToast(`Suara untuk "${idea.nama}" dibatalkan.`, 'info');
+      } else {
+        if (appState.myVotes.length >= MAX_VOTES) {
+          showToast(`Maksimal memilih ${MAX_VOTES} lomba! Batalkan salah satu pilihan dulu.`, 'warning');
+          return;
+        }
+        appState.myVotes.push(id);
+        idea.votes += 1;
+        delta = 1;
+        showToast(`Berhasil memilih "${idea.nama}"!`, 'success');
+      }
+
+      saveLocalState();
+      renderAll();
+
+      // Sync latest vote count to Supabase Cloud
+      if (supabaseClient && isCloudConnected && delta !== 0) {
+        try {
+          const { data: latestRow, error: fetchErr } = await supabaseClient
+            .from('ideas')
+            .select('votes')
+            .eq('id', id)
+            .single();
+
+          const baseVotes = !fetchErr && latestRow ? Number(latestRow.votes) : (idea.votes - delta);
+          const updatedVotes = Math.max(0, baseVotes + delta);
+
+          const { error: updateErr } = await supabaseClient
+            .from('ideas')
+            .update({ votes: updatedVotes })
+            .eq('id', id);
+
+          if (updateErr) throw updateErr;
+          idea.votes = updatedVotes;
+          saveLocalState();
+          renderAll();
+        } catch (err) {
+          console.error('Gagal memperbarui vote di Supabase:', err);
+        }
+      }
+    }
+
+    function lockMyVotes() {
+      if (appState.myVotes.length === 0) {
+        showToast('Pilih minimal 1 lomba sebelum mengunci suara.', 'warning');
+        return;
+      }
+      appState.isVoteLocked = true;
+      saveLocalState();
+      renderAll();
+      showToast('Terima kasih! Pilihan suaramu telah dikunci.', 'success');
+    }
+
+    function setCategoryFilter(cat) {
+      appState.selectedCategory = cat;
+      renderAll();
+    }
+
+    function setChartMode(mode) {
+      appState.chartMode = mode;
+      renderAll();
+    }
+
+    // ==================== RENDER FUNCTIONS ====================
+    function renderAll() {
+      const approvedIdeas = appState.ideas.filter(i => i.status === 'approved');
+      const pendingCount = appState.ideas.filter(i => i.status === 'pending').length;
+      const totalVotesAll = approvedIdeas.reduce((sum, item) => sum + item.votes, 0);
+
+      // Update KPI Stats
+      document.getElementById('statTotalLomba').textContent = approvedIdeas.length;
+      document.getElementById('statTotalVotes').textContent = totalVotesAll;
+      document.getElementById('statMyQuota').textContent = `${appState.myVotes.length}/${MAX_VOTES}`;
+
+      // Update Pending Badge in Navbar
+      const pendingBadge = document.getElementById('navPendingBadge');
+      if (pendingCount > 0) {
+        pendingBadge.textContent = pendingCount;
+        pendingBadge.classList.remove('hidden');
+      } else {
+        pendingBadge.classList.add('hidden');
+      }
+
+      // Update Phase UI
+      const phaseBadgeNav = document.getElementById('phaseBadgeNav');
+      const phaseLabelNav = document.getElementById('phaseLabelNav');
+      const formClosedNotice = document.getElementById('formClosedNotice');
+      const ideaForm = document.getElementById('ideaForm');
+
+      if (appState.phase === 'open') {
+        phaseBadgeNav.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+        phaseLabelNav.textContent = 'Usulan & Voting Dibuka';
+        formClosedNotice.classList.add('hidden');
+        if (!formCollapsed) ideaForm.classList.remove('hidden');
+      } else if (appState.phase === 'voting_only') {
+        phaseBadgeNav.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30';
+        phaseLabelNav.textContent = 'Tahap Voting Saja';
+        formClosedNotice.classList.remove('hidden');
+        ideaForm.classList.add('hidden');
+      } else {
+        phaseBadgeNav.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30';
+        phaseLabelNav.textContent = 'Voting Selesai';
+        formClosedNotice.classList.remove('hidden');
+        ideaForm.classList.add('hidden');
+      }
+
+      // Update Chart Mode Buttons
+      const btnH = document.getElementById('btnModeHorizontal');
+      const btnV = document.getElementById('btnModeVertical');
+      const scaleHeader = document.getElementById('horizontalScaleHeader');
+
+      if (appState.chartMode === 'horizontal') {
+        btnH.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-400 text-slate-950 transition cursor-pointer';
+        btnV.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer';
+        scaleHeader.classList.remove('hidden');
+        scaleHeader.classList.add('sm:flex');
+      } else {
+        btnV.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-400 text-slate-950 transition cursor-pointer';
+        btnH.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer';
+        scaleHeader.classList.add('hidden');
+        scaleHeader.classList.remove('sm:flex');
+      }
+
+      // Render Category Filters
+      const categories = ['Semua', 'Olahraga', 'E-Sport', 'Hiburan & Fun Game', 'Seni & Kreativitas'];
+      const filterBar = document.getElementById('categoryFilterBar');
+      filterBar.innerHTML = categories.map(cat => {
+        const active = appState.selectedCategory === cat;
+        const count = cat === 'Semua'
+          ? approvedIdeas.length
+          : approvedIdeas.filter(i => i.kategori === cat).length;
+        return `
+          <button type="button" onclick="setCategoryFilter('${cat}')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+              active
+                ? 'bg-white text-slate-950 border-white shadow-sm'
+                : 'bg-[#090d16] text-slate-300 border-slate-800 hover:border-slate-600 hover:text-white'
+            }">
+            ${escapeHTML(cat)} <span class="opacity-75">(${count})</span>
+          </button>
+        `;
+      }).join('');
+
+      // Render Vote Control Bar
+      const voteControlBar = document.getElementById('voteControlBar');
+      if (appState.phase === 'closed') {
+        voteControlBar.innerHTML = `
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold">
+            <i data-lucide="trophy" class="w-3.5 h-3.5"></i> Klasemen Akhir Resmi
+          </span>
+        `;
+      } else if (appState.isVoteLocked) {
+        voteControlBar.innerHTML = `
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Suara Terkunci (${appState.myVotes.length}/${MAX_VOTES})
+          </span>
+        `;
+      } else {
+        voteControlBar.innerHTML = `
+          <span class="text-xs font-semibold text-slate-300">Dipilih: <strong class="text-cyan-300">${appState.myVotes.length}/${MAX_VOTES}</strong></span>
+          ${appState.myVotes.length > 0 ? `
+            <button type="button" onclick="lockMyVotes()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-extrabold transition cursor-pointer shadow-lg shadow-emerald-500/20">
+              <i data-lucide="lock" class="w-3.5 h-3.5"></i> Kunci Pilihan
+            </button>
+          ` : ''}
+        `;
+      }
+
+      // Filter & Sort Ideas by Votes Descending
+      const filteredIdeas = approvedIdeas
+        .filter(item => appState.selectedCategory === 'Semua' || item.kategori === appState.selectedCategory)
+        .sort((a, b) => b.votes - a.votes);
+
+      const container = document.getElementById('unifiedChartContainer');
+
+      if (filteredIdeas.length === 0) {
+        container.innerHTML = `
+          <div class="rounded-2xl bg-[#090d16] border border-slate-800 p-10 text-center space-y-2">
+            <i data-lucide="inbox" class="w-10 h-10 text-slate-500 mx-auto"></i>
+            <p class="text-sm font-bold text-slate-200">Belum ada usulan lomba di kategori ini</p>
+            <p class="text-xs text-slate-400">Jadilah yang pertama mengusulkan ide lomba melalui formulir di samping!</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      const maxVotesInView = Math.max(...filteredIdeas.map(i => i.votes), 1);
+
+      if (appState.chartMode === 'horizontal') {
+        container.className = 'space-y-3.5';
+        container.innerHTML = filteredIdeas.map((item, idx) => {
+          const sharePct = totalVotesAll > 0 ? Math.round((item.votes / totalVotesAll) * 100) : 0;
+          const barWidthPct = Math.max(6, Math.round((item.votes / maxVotesInView) * 100));
+          const isVoted = appState.myVotes.includes(item.id);
+          const canInteract = appState.phase !== 'closed' && !appState.isVoteLocked;
+          const hasVideo = Boolean(item.videoUrl && item.videoUrl.trim());
+
+          return `
+            <div class="rounded-2xl bg-[#090d16] border ${isVoted ? 'border-emerald-400/70 ring-1 ring-emerald-400/30' : 'border-slate-800 hover:border-slate-700'} p-4 transition">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+                <div class="flex items-start gap-3">
+                  <div class="w-9 h-9 rounded-xl border flex items-center justify-center font-display font-bold text-sm shrink-0 shadow-md ${getRankBadgeStyle(idx)}">
+                    #${idx + 1}
+                  </div>
+                  <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <h3 class="text-base font-bold text-white leading-snug">${escapeHTML(item.nama)}</h3>
+                      <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${getCategoryBadgeClass(item.kategori)}">
+                        ${escapeHTML(item.kategori)}
+                      </span>
+                      ${hasVideo ? `
+                        <button type="button" onclick="openVideoModal('${item.id}')"
+                          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/35 transition cursor-pointer">
+                          <i data-lucide="play-circle" class="w-3 h-3"></i>
+                          <span>Lihat Contoh Video</span>
+                        </button>
+                      ` : ''}
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">${escapeHTML(item.deskripsi)}</p>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 pt-0.5 text-[11px] text-slate-400">
+                      <span class="inline-flex items-center gap-1 text-amber-300 font-semibold">
+                        <i data-lucide="gift" class="w-3.5 h-3.5"></i> Hadiah: ${escapeHTML(item.hadiah)}
+                      </span>
+                      <span>Usulan: <strong class="text-slate-300">${escapeHTML(item.pengusul)}</strong> (${escapeHTML(item.kelas)})</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- DIRECT VOTE BUTTON -->
+                <div class="shrink-0 self-end md:self-center">
+                  <button type="button" onclick="toggleVote('${item.id}')" ${!canInteract ? 'disabled' : ''}
+                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wide transition ${
+                      isVoted
+                        ? 'bg-emerald-400 hover:bg-emerald-300 text-slate-950 shadow-lg shadow-emerald-500/20 cursor-pointer'
+                        : canInteract
+                          ? 'bg-cyan-400 hover:bg-cyan-300 text-slate-950 shadow-lg shadow-cyan-500/20 cursor-pointer'
+                          : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                    }">
+                    <i data-lucide="${isVoted ? 'check-circle-2' : 'thumbs-up'}" class="w-3.5 h-3.5 stroke-[2.5]"></i>
+                    <span>${isVoted ? 'Dipilih (Batal)' : 'Vote Lomba'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- ANALYTICS BAR TRACK -->
+              <div class="relative h-8 rounded-xl bg-[#111827] border border-slate-800/90 chart-grid-bg p-1 flex items-center">
+                <div class="h-full rounded-lg bg-gradient-to-r ${getRankGradient(idx)} bar-gloss transition-all duration-500 flex items-center justify-end pr-2.5"
+                  style="width: ${barWidthPct}%">
+                </div>
+                <div class="ml-2.5 flex items-center gap-1.5 text-xs font-extrabold whitespace-nowrap">
+                  <span class="text-white">${item.votes} Suara</span>
+                  <span class="text-cyan-300">(${sharePct}%)</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        // VERTICAL COLUMN BAR CHART + INTEGRATED VOTING CARDS
+        container.className = 'space-y-4';
+        const columnsHTML = filteredIdeas.map((item, idx) => {
+          const sharePct = totalVotesAll > 0 ? Math.round((item.votes / totalVotesAll) * 100) : 0;
+          const barHeightPct = Math.max(12, Math.round((item.votes / maxVotesInView) * 100));
+          const isVoted = appState.myVotes.includes(item.id);
+          const canInteract = appState.phase !== 'closed' && !appState.isVoteLocked;
+          const hasVideo = Boolean(item.videoUrl && item.videoUrl.trim());
+
+          return `
+            <div class="min-w-[215px] flex-1 rounded-2xl bg-[#090d16] border ${isVoted ? 'border-emerald-400/70 ring-1 ring-emerald-400/30' : 'border-slate-800'} p-4 flex flex-col justify-between gap-3">
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2.5 py-0.5 rounded-lg border font-display font-bold text-xs ${getRankBadgeStyle(idx)}">
+                  #${idx + 1}
+                </span>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${getCategoryBadgeClass(item.kategori)}">
+                  ${escapeHTML(item.kategori)}
+                </span>
+              </div>
+
+              <!-- VERTICAL BAR AREA -->
+              <div class="h-44 rounded-xl bg-[#111827] border border-slate-800/90 p-3 flex flex-col justify-end items-center relative">
+                <div class="text-xs font-extrabold text-white mb-1.5 text-center">
+                  ${item.votes} <span class="text-cyan-300">(${sharePct}%)</span>
+                </div>
+                <div class="w-14 sm:w-16 rounded-t-xl bg-gradient-to-t ${getRankGradient(idx)} bar-gloss transition-all duration-500 shadow-lg"
+                  style="height: ${barHeightPct}%">
+                </div>
+              </div>
+
+              <div class="space-y-1.5 flex-1">
+                <h3 class="text-sm font-bold text-white line-clamp-2 leading-snug">${escapeHTML(item.nama)}</h3>
+                <p class="text-[11px] text-amber-300 font-semibold line-clamp-1">
+                  Hadiah: ${escapeHTML(item.hadiah)}
+                </p>
+                <p class="text-[11px] text-slate-400 line-clamp-2">${escapeHTML(item.deskripsi)}</p>
+                ${hasVideo ? `
+                  <button type="button" onclick="openVideoModal('${item.id}')"
+                    class="mt-1 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/35 transition cursor-pointer">
+                    <i data-lucide="play-circle" class="w-3 h-3"></i>
+                    <span>Contoh Video</span>
+                  </button>
+                ` : ''}
+              </div>
+
+              <button type="button" onclick="toggleVote('${item.id}')" ${!canInteract ? 'disabled' : ''}
+                class="w-full py-2 px-3 rounded-xl text-xs font-extrabold uppercase tracking-wide flex items-center justify-center gap-1.5 transition ${
+                  isVoted
+                    ? 'bg-emerald-400 hover:bg-emerald-300 text-slate-950 cursor-pointer'
+                    : canInteract
+                      ? 'bg-cyan-400 hover:bg-cyan-300 text-slate-950 cursor-pointer'
+                      : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                }">
+                <i data-lucide="${isVoted ? 'check-circle-2' : 'thumbs-up'}" class="w-3.5 h-3.5 stroke-[2.5]"></i>
+                <span>${isVoted ? 'Dipilih' : 'Vote Lomba'}</span>
+              </button>
+            </div>
+          `;
+        }).join('');
+
+        container.innerHTML = `
+          <div class="flex gap-3.5 overflow-x-auto pb-2">
+            ${columnsHTML}
+          </div>
+        `;
+      }
+
+      lucide.createIcons();
+    }
+
+    // ==================== ADMIN PANEL ====================
+    function openAdminModal() {
+      const modal = document.getElementById('adminModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.getElementById('adminPinInput').value = '';
+      document.getElementById('adminPinError').classList.add('hidden');
+      document.getElementById('adminPinView').classList.remove('hidden');
+      document.getElementById('adminDashboardView').classList.add('hidden');
+    }
+
+    function closeAdminModal() {
+      const modal = document.getElementById('adminModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function verifyAdminPin(e) {
+      e.preventDefault();
+      const pin = document.getElementById('adminPinInput').value.trim();
+      if (pin === ADMIN_PIN) {
+        document.getElementById('adminPinView').classList.add('hidden');
+        document.getElementById('adminDashboardView').classList.remove('hidden');
+        renderAdminDashboard();
+      } else {
+        document.getElementById('adminPinError').classList.remove('hidden');
+      }
+    }
+
+    function renderAdminDashboard() {
+      document.getElementById('adminPhaseSelect').value = appState.phase;
+      document.getElementById('adminAutoApprove').checked = appState.autoApprove;
+      document.getElementById('adminTotalCount').textContent = appState.ideas.length;
+
+      const warningBox = document.getElementById('cloudSetupWarning');
+      if (warningBox) {
+        if (isCloudConnected) {
+          warningBox.classList.add('hidden');
+        } else {
+          warningBox.classList.remove('hidden');
+        }
+      }
+
+      const listEl = document.getElementById('adminListContainer');
+      listEl.innerHTML = appState.ideas.map(item => `
+        <div class="rounded-xl bg-[#090d16] border border-slate-800 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                item.status === 'approved'
+                  ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                  : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+              }">
+                ${item.status === 'approved' ? 'Tayang' : 'Pending'}
+              </span>
+              <span class="text-sm font-bold text-white">${escapeHTML(item.nama)}</span>
+              <span class="text-xs font-bold text-cyan-300">(${item.votes} suara)</span>
+            </div>
+            <p class="text-xs text-slate-400">Kategori: ${escapeHTML(item.kategori)} • Hadiah: ${escapeHTML(item.hadiah)}</p>
+            ${item.videoUrl ? `<p class="text-[11px] text-rose-300 truncate max-w-md">Video: ${escapeHTML(item.videoUrl)}</p>` : ''}
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button type="button" onclick="toggleIdeaApproval('${item.id}')"
+              class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                item.status === 'approved'
+                  ? 'bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/30'
+                  : 'bg-emerald-400 hover:bg-emerald-300 text-slate-950'
+              }">
+              ${item.status === 'approved' ? 'Sembunyikan' : 'Setujui'}
+            </button>
+            <button type="button" onclick="deleteIdea('${item.id}')"
+              class="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 transition cursor-pointer" title="Hapus">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    async function syncSettingsToCloud() {
+      if (!supabaseClient || !isCloudConnected) return;
+      try {
+        await supabaseClient.from('app_settings').upsert({
+          id: 'global',
+          phase: appState.phase,
+          auto_approve: appState.autoApprove,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+      } catch (err) {
+        console.warn('Gagal menyinkronkan pengaturan ke cloud:', err);
+      }
+    }
+
+    async function changePhase(newPhase) {
+      appState.phase = newPhase;
+      saveLocalState();
+      renderAll();
+      await syncSettingsToCloud();
+      showToast('Fase acara berhasil diperbarui.', 'success');
+    }
+
+    async function toggleAutoApprove(checked) {
+      appState.autoApprove = checked;
+      saveLocalState();
+      await syncSettingsToCloud();
+      showToast(`Auto-Approve ${checked ? 'diaktifkan' : 'dinonaktifkan'}.`, 'info');
+    }
+
+    async function toggleIdeaApproval(id) {
+      const idea = appState.ideas.find(i => i.id === id);
+      if (!idea) return;
+      idea.status = idea.status === 'approved' ? 'pending' : 'approved';
+      saveLocalState();
+      renderAll();
+      renderAdminDashboard();
+
+      if (supabaseClient && isCloudConnected) {
+        try {
+          await supabaseClient.from('ideas').update({ status: idea.status }).eq('id', id);
+        } catch (err) {
+          console.error('Gagal update status approval di cloud:', err);
+        }
+      }
+
+      showToast(`Status "${idea.nama}" diperbarui.`, 'info');
+    }
+
+    async function deleteIdea(id) {
+      appState.ideas = appState.ideas.filter(i => i.id !== id);
+      appState.myVotes = appState.myVotes.filter(v => v !== id);
+      saveLocalState();
+      renderAll();
+      renderAdminDashboard();
+
+      if (supabaseClient && isCloudConnected) {
+        try {
+          await supabaseClient.from('ideas').delete().eq('id', id);
+        } catch (err) {
+          console.error('Gagal menghapus data di cloud:', err);
+        }
+      }
+
+      showToast('Usulan lomba dihapus.', 'warning');
+    }
+
+    function exportCSV() {
+      const headers = ['Peringkat', 'Nama Lomba', 'Kategori', 'Jumlah Suara', 'Usulan Hadiah', 'Link Video', 'Pengusul', 'Kelas', 'Status'];
+      const sorted = [...appState.ideas].sort((a, b) => b.votes - a.votes);
+      const rows = sorted.map((item, idx) => [
+        idx + 1,
+        `"${item.nama.replace(/"/g, '""')}"`,
+        `"${item.kategori}"`,
+        item.votes,
+        `"${item.hadiah.replace(/"/g, '""')}"`,
+        `"${(item.videoUrl || '').replace(/"/g, '""')}"`,
+        `"${item.pengusul.replace(/"/g, '""')}"`,
+        `"${item.kelas.replace(/"/g, '""')}"`,
+        item.status
+      ]);
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', 'rekap_voting_class_meeting.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Rekap hasil voting berhasil diunduh (CSV).', 'success');
+    }
+
+    function resetDemoData() {
+      localStorage.removeItem(STORAGE_KEY);
+      appState = {
+        ideas: JSON.parse(JSON.stringify(DEFAULT_IDEAS)),
+        myVotes: [],
+        isVoteLocked: false,
+        phase: 'open',
+        autoApprove: true,
+        selectedCategory: 'Semua',
+        chartMode: 'horizontal'
+      };
+      saveLocalState();
+      renderAll();
+      renderAdminDashboard();
+      if (supabaseClient) {
+        syncFromCloud(false);
+      }
+      showToast('Cache perangkat di-reset & disinkronkan ulang.', 'info');
+    }
+
+    // ==================== BOOT ====================
+    loadLocalState();
+    renderAll();
+    syncFromCloud(false);
+    setupRealtimeSubscription();
+  </script>
+</body>
+</html>
